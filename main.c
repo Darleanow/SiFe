@@ -31,22 +31,41 @@ static void write_log(const char *text) {
   logbuf_updated = 1;
 }
 
+// Calculate responsive dimensions
+static void calculate_responsive_dimensions(void) {
+  // Menu width is 1/4 of window width, with minimum of 200px
+  int calculated_menu_width = window_width / 4;
+  if (calculated_menu_width < 200) calculated_menu_width = 200;
+
+  // Button dimensions scale with window size but have minimums
+  button_width = window_width / 6;
+  if (button_width < 130) button_width = 130;
+  if (button_width > 200) button_width = 200;
+
+  button_height = window_height / 24;
+  if (button_height < 25) button_height = 25;
+  if (button_height > 40) button_height = 40;
+}
+
 static void menu_window(mu_Context *ctx) {
   int menu_width = window_width / 4;
-  int x_pos = (int)(-menu_width + (menu_width * menu_animation));
-  x_pos = mu_clamp(x_pos, 0, 0);  // Clamp between 0 and 0 to prevent sliding
+  if (menu_width < 200) menu_width = 200;
 
-  int header_height = 40;
-  int close_button_size = 30;
+  int x_pos = (int)(-menu_width + (menu_width * menu_animation));
+  x_pos = mu_clamp(x_pos, -menu_width, 0);
+
+  int header_height = window_height / 15;
+  if (header_height < 40) header_height = 40;
+  int close_button_size = header_height - 10;
 
   if (mu_begin_window_ex(ctx, "Open Menu", mu_rect(x_pos, 0, menu_width, window_height),
                         MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE | MU_OPT_NOSCROLL)) {
     mu_Container *win = mu_get_current_container(ctx);
-    win->rect.x = x_pos;  // Ensure x position is maintained
+    win->rect.x = x_pos;
     win->rect.w = menu_width;
+    win->rect.h = window_height;
 
     mu_draw_rect(ctx, mu_rect(0, 0, menu_width, window_height), mu_color(30, 30, 30, 255));
-
     mu_draw_rect(ctx, mu_rect(0, 0, menu_width, header_height), mu_color(40, 40, 40, 255));
 
     mu_layout_row(ctx, 2, (int[]) { menu_width - close_button_size - 10, close_button_size }, header_height);
@@ -55,7 +74,6 @@ static void menu_window(mu_Context *ctx) {
     {
         int title_width = ctx->text_width(ctx->style->font, "SiFe", 4);
         int title_height = ctx->text_height(ctx->style->font);
-
         int text_x = ((menu_width - close_button_size - 10) - title_width) / 2;
         int text_y = (header_height - title_height) / 2;
 
@@ -70,18 +88,21 @@ static void menu_window(mu_Context *ctx) {
         int button_padding = (header_height - close_button_size) / 2;
         mu_layout_set_next(ctx, mu_rect(menu_width - close_button_size - 5, button_padding,
                                       close_button_size, close_button_size), 0);
-
         if (mu_button_ex(ctx, "X", 0, MU_OPT_ALIGNCENTER)) {
             menu_open = 0;
         }
     }
     mu_layout_end_column(ctx);
 
+    // Responsive spacing and layout
+    int option_height = window_height / 20;
+    if (option_height < 30) option_height = 30;
+
     mu_layout_row(ctx, 1, (int[]) { -1 }, 1);
     mu_draw_rect(ctx, mu_rect(10, header_height + 5, menu_width - 20, 1),
                  ctx->style->colors[MU_COLOR_BORDER]);
 
-    mu_layout_row(ctx, 1, (int[]) { -1 }, 30);
+    mu_layout_row(ctx, 1, (int[]) { -1 }, option_height);
     mu_text(ctx, "Menu Options");
 
     if (mu_button(ctx, "Option 1")) {
@@ -94,18 +115,18 @@ static void menu_window(mu_Context *ctx) {
       write_log("Selected Option 3");
     }
 
-    mu_layout_row(ctx, 1, (int[]) { -1 }, 20);  // Spacing row
+    mu_layout_row(ctx, 1, (int[]) { -1 }, option_height / 2);  // Spacing row
 
     mu_layout_row(ctx, 1, (int[]) { -1 }, 1);
     mu_Rect sep = mu_layout_next(ctx);
     mu_draw_rect(ctx, mu_rect(10, sep.y, menu_width - 20, 1),
                  ctx->style->colors[MU_COLOR_BORDER]);
 
-    mu_layout_row(ctx, 1, (int[]) { -1 }, 30);
+    mu_layout_row(ctx, 1, (int[]) { -1 }, option_height);
     mu_label(ctx, "Background Color");
 
-    static float bg_color[3] = { 19, 19, 19 };  // Starting values matching your current bg
-    mu_layout_row(ctx, 2, (int[]) { 50, -1 }, 25);
+    static float bg_color[3] = { 19, 19, 19 };
+    mu_layout_row(ctx, 2, (int[]) { 50, -1 }, option_height);
 
     mu_label(ctx, "Red:");
     if (mu_slider(ctx, &bg_color[0], 0, 255)) {
@@ -122,7 +143,7 @@ static void menu_window(mu_Context *ctx) {
       bg[2] = bg_color[2];
     }
 
-    mu_layout_row(ctx, 1, (int[]) { -1 }, 40);
+    mu_layout_row(ctx, 1, (int[]) { -1 }, option_height * 1.5);
     mu_Rect r = mu_layout_next(ctx);
     mu_draw_rect(ctx, r, mu_color(bg_color[0], bg_color[1], bg_color[2], 255));
 
@@ -136,24 +157,32 @@ static void menu_window(mu_Context *ctx) {
 
 static void draw_button(mu_Context *ctx) {
   if (!menu_open && menu_animation == 0.0f) {
-    if (mu_begin_window_ex(ctx, "MenuButton", mu_rect(10, 10, button_width, button_height),
-                          MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE | MU_OPT_NOSCROLL | MU_OPT_NOFRAME)) {
+    // Scale button position with window size
+    int button_x = window_width / 80;  // 1.25% of window width
+    int button_y = window_height / 60; // 1.67% of window height
+
+    if (mu_begin_window_ex(ctx, "MenuButton",
+                          mu_rect(button_x, button_y, button_width, button_height),
+                          MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE |
+                          MU_OPT_NOSCROLL | MU_OPT_NOFRAME)) {
 
       mu_Container *cnt = mu_get_current_container(ctx);
       mu_draw_rect(ctx, cnt->rect, mu_color(40, 40, 40, 255));
 
-      mu_layout_row(ctx, 1, (int[]) { -1 }, -1);  // Use -1 for height to fill container
+      mu_layout_row(ctx, 1, (int[]) { -1 }, -1);
       if (mu_button_ex(ctx, "Open Menu", 0, MU_OPT_ALIGNCENTER | MU_OPT_NOFRAME)) {
         menu_open = 1;
       }
 
       mu_end_window(ctx);
-                          }
+    }
   }
 }
 
 static void process_frame(mu_Context *ctx) {
   mu_begin(ctx);
+
+  calculate_responsive_dimensions();
 
   if (menu_open && menu_animation < 1.0f) {
     menu_animation += 0.15f;
@@ -229,11 +258,13 @@ int main(int argc, char **argv) {
           break;
 
         case SDL_WINDOWEVENT:
-          if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+          if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
+              e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             window_width = e.window.data1;
             window_height = e.window.data2;
-          }
-          break;
+            r_update_dimensions(window_width, window_height);
+              }
+        break;
 
         case SDL_MOUSEMOTION:
           mu_input_mousemove(ctx, e.motion.x, e.motion.y);
