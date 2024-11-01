@@ -15,14 +15,10 @@ static int width  = 800;
 static int height = 600;
 static int buf_idx;
 
-static SDL_Window *window;
-
+extern SDL_Window* window;  // Changed to extern declaration
 
 void r_init(void) {
-  /* init SDL window */
-  window = SDL_CreateWindow(
-    NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-    width, height, SDL_WINDOW_OPENGL);
+  // Remove window creation since it's now handled in main.c
   SDL_GL_CreateContext(window);
 
   /* init gl */
