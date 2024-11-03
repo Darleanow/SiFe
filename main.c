@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #undef main
+#include <SDL_opengl.h>
 #include <stdio.h>
 #include "renderer.h"
 #include "microui.h"
@@ -258,12 +259,32 @@ int main(int argc, char **argv) {
           break;
 
         case SDL_WINDOWEVENT:
-          if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
-              e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-            window_width = e.window.data1;
-            window_height = e.window.data2;
+          switch (e.window.event) {
+            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+            case SDL_WINDOWEVENT_MAXIMIZED:
+            case SDL_WINDOWEVENT_RESTORED:
+            case SDL_WINDOWEVENT_EXPOSED:
+              SDL_GetWindowSize(window, &window_width, &window_height);
+
             r_update_dimensions(window_width, window_height);
-              }
+
+            calculate_responsive_dimensions();
+
+            r_clear(mu_color(bg[0], bg[1], bg[2], 255));
+
+            glViewport(0, 0, window_width, window_height);
+
+            SDL_GL_SwapWindow(window);
+            break;
+
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+              // Request immediate redraw when window regains focus
+                r_clear(mu_color(bg[0], bg[1], bg[2], 255));
+            process_frame(ctx);
+            r_present();
+            break;
+          }
         break;
 
         case SDL_MOUSEMOTION:
