@@ -92,31 +92,38 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
 
         case SDL_WINDOWEVENT:
             switch (e->window.event) {
+                case SDL_WINDOWEVENT_MOVED:
+                {
+                    int width, height;
+                    SDL_GetWindowSize(window, &width, &height);
+                    if (width != state->window_width || height != state->window_height) {
+                        ui_state_update_dimensions(state, width, height);
+                        r_update_dimensions(width, height);
+                        r_clear(mu_color(state->bg_color[0], state->bg_color[1], state->bg_color[2], 255));
+                        process_frame(ctx);
+                        render_commands(ctx);
+                        r_present();
+                    }
+                }
+                break;
+
                 case SDL_WINDOWEVENT_RESIZED:
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                 case SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL_WINDOWEVENT_RESTORED:
                 case SDL_WINDOWEVENT_EXPOSED:
+                {
                     int width, height;
                     SDL_GetWindowSize(window, &width, &height);
-                    ui_state_update_dimensions(state, width, height);
-                    r_update_dimensions(width, height);  // Update renderer dimensions
-
-                    // Clear with background color
-                    r_clear(mu_color(state->bg_color[0], state->bg_color[1], state->bg_color[2], 255));
-
-                    // Process and render a new frame
-                    process_frame(ctx);
-                    render_commands(ctx);
-
-                    // Present the result
-                    r_present();
-                    break;
-
-                case SDL_WINDOWEVENT_FOCUS_GAINED:
-                    r_clear(mu_color(state->bg_color[0], state->bg_color[1], state->bg_color[2], 255));
-                    process_frame(ctx);
-                    r_present();
+                    if (width != state->window_width || height != state->window_height) {
+                        ui_state_update_dimensions(state, width, height);
+                        r_update_dimensions(width, height);
+                        r_clear(mu_color(state->bg_color[0], state->bg_color[1], state->bg_color[2], 255));
+                        process_frame(ctx);
+                        render_commands(ctx);
+                        r_present();
+                    }
+                }
                     break;
             }
             break;
