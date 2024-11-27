@@ -21,8 +21,11 @@ set(PROJECT_SOURCES
 # Create executable
 add_executable(SiFe
         main.c
-        ${MICROUI_SOURCES}
-        ${PROJECT_SOURCES}
+        dependencies/MicroUI/microui.c
+        renderer.c
+        ui_state.c
+        menu.c
+        logger.c
 )
 
 # Link libraries
