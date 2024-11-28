@@ -14,6 +14,10 @@
 SDL_Window *window = NULL;
 static UIState ui_state;
 
+#ifdef __APPLE__
+    float scale_factor = 1.0f;
+#endif
+
 // Input handling constants and mappings
 #define KEY_MAP_MASK 0xff
 
