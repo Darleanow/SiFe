@@ -11,25 +11,21 @@ set(SDL_DIR "${CMAKE_SOURCE_DIR}/dependencies/SDL-release-2.30.8")
 add_subdirectory(${SDL_DIR})
 
 # Define source files
-set(MICROUI_SOURCES "${MICROUI_DIR}/microui.c" renderer.c)
+set(MICROUI_SOURCES
+        "${MICROUI_DIR}/microui.c"
+        renderer.c
+)
+
 set(PROJECT_SOURCES
+        main.c
         ui_state.c
         menu.c
         logger.c
+        ${MICROUI_SOURCES}
 )
 
 # Create executable
-add_executable(SiFe
-        main.c
-        dependencies/MicroUI/microui.c
-        renderer.c
-        ui_state.c
-        menu.c
-        logger.c
-)
-
-# Link libraries
-target_link_libraries(SiFe PRIVATE SDL2::SDL2-static OpenGL32)
+add_executable(SiFe ${PROJECT_SOURCES})
 
 # Include directories
 target_include_directories(SiFe PRIVATE
@@ -37,3 +33,12 @@ target_include_directories(SiFe PRIVATE
         ${SDL_DIR}/include
         ${CMAKE_SOURCE_DIR}
 )
+
+# Platform-specific library linking
+if(WIN32)
+    target_link_libraries(SiFe PRIVATE SDL2::SDL2-static OpenGL32)
+elseif(APPLE)
+    target_link_libraries(SiFe PRIVATE SDL2::SDL2-static "-framework OpenGL")
+else()
+    target_link_libraries(SiFe PRIVATE SDL2::SDL2-static GL)
+endif()
