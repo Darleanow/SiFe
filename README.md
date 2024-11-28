@@ -1,1 +1,1 @@
-![Architecture](Resources/schema.png)
+![Architecture](src/Resources/schema.png)
