@@ -13,6 +13,7 @@
 
 SDL_Window *window = NULL;
 static UIState ui_state;
+static float scale_factor = 1.0f;
 
 // Input handling constants and mappings
 #define KEY_MAP_MASK 0xff
@@ -65,7 +66,6 @@ static int text_height(mu_Font font) {
     return r_get_text_height();
 }
 
-
 static void render_commands(mu_Context *ctx) {
     mu_Command *cmd = NULL;
     while (mu_next_command(ctx, &cmd)) {
@@ -91,6 +91,7 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
         case SDL_QUIT:
             *running = 0;
             break;
+
         case SDL_WINDOWEVENT:
             switch (e->window.event) {
                 case SDL_WINDOWEVENT_MOVED:
@@ -100,11 +101,17 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
                 case SDL_WINDOWEVENT_RESTORED:
                 case SDL_WINDOWEVENT_EXPOSED: {
                     int width, height;
-                    #ifdef __APPLE__
-                        SDL_GL_GetDrawableSize(window, &width, &height);
-                    #else
-                        SDL_GetWindowSize(window, &width, &height);
-                    #endif
+#ifdef __APPLE__
+                    SDL_GL_GetDrawableSize(window, &width, &height);
+
+                        // Update scale factor on window resize
+                        int window_w, window_h;
+                        SDL_GetWindowSize(window, &window_w, &window_h);
+                        scale_factor = (float)width / window_w;
+#else
+                    SDL_GetWindowSize(window, &width, &height);
+#endif
+
                     if (width != state->window_width || height != state->window_height) {
                         ui_state_update_dimensions(state, width, height);
                         r_update_dimensions(width, height);
@@ -118,9 +125,14 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
             }
             break;
 
-        case SDL_MOUSEMOTION:
+        case SDL_MOUSEMOTION: {
+#ifdef __APPLE__
+            mu_input_mousemove(ctx, e->motion.x * scale_factor, e->motion.y * scale_factor);
+#else
             mu_input_mousemove(ctx, e->motion.x, e->motion.y);
+#endif
             break;
+        }
 
         case SDL_MOUSEWHEEL:
             mu_input_scroll(ctx, 0, e->wheel.y * -30);
@@ -133,8 +145,21 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
             int b = button_map[e->button.button & KEY_MAP_MASK];
-            if (b && e->type == SDL_MOUSEBUTTONDOWN) { mu_input_mousedown(ctx, e->button.x, e->button.y, b); }
-            if (b && e->type == SDL_MOUSEBUTTONUP) { mu_input_mouseup(ctx, e->button.x, e->button.y, b); }
+#ifdef __APPLE__
+            if (b && e->type == SDL_MOUSEBUTTONDOWN) {
+                    mu_input_mousedown(ctx, e->button.x * scale_factor, e->button.y * scale_factor, b);
+                }
+                if (b && e->type == SDL_MOUSEBUTTONUP) {
+                    mu_input_mouseup(ctx, e->button.x * scale_factor, e->button.y * scale_factor, b);
+                }
+#else
+            if (b && e->type == SDL_MOUSEBUTTONDOWN) {
+                mu_input_mousedown(ctx, e->button.x, e->button.y, b);
+            }
+            if (b && e->type == SDL_MOUSEBUTTONUP) {
+                mu_input_mouseup(ctx, e->button.x, e->button.y, b);
+            }
+#endif
             break;
         }
 
@@ -154,10 +179,9 @@ static void cleanup(mu_Context *ctx) {
     SDL_Quit();
 }
 
-
 int main(int argc, char **argv) {
-    #ifdef __APPLE__
-        // Set up SDL for macOS
+#ifdef __APPLE__
+    // Set up SDL for macOS
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -171,7 +195,7 @@ int main(int argc, char **argv) {
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    #endif
+#endif
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL initialization failed: %s\n", SDL_GetError());
@@ -193,6 +217,14 @@ int main(int argc, char **argv) {
         SDL_Quit();
         return 1;
     }
+
+    // Initialize scale factor for Retina displays
+#ifdef __APPLE__
+    int drawable_w, drawable_h, window_w, window_h;
+        SDL_GL_GetDrawableSize(window, &drawable_w, &drawable_h);
+        SDL_GetWindowSize(window, &window_w, &window_h);
+        scale_factor = (float)drawable_w / window_w;
+#endif
 
     if (r_init() != 0) {
         fprintf(stderr, "Renderer initialization failed\n");
@@ -229,9 +261,6 @@ int main(int argc, char **argv) {
         SDL_Delay(FRAME_DELAY_MS);
     }
 
-    // Cleanup
-    free(ctx);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    cleanup(ctx);
     return 0;
 }
