@@ -56,6 +56,7 @@ int r_init(void) {
     if (error != GL_NO_ERROR) {
         fprintf(stderr, "OpenGL error during initialization: %d\n", error);
     }
+    return 0;
 }
 
 void r_update_dimensions(int w, int h) {
