@@ -1,0 +1,47 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+// Window dimensions
+#define DEFAULT_WINDOW_WIDTH 800
+#define DEFAULT_WINDOW_HEIGHT 600
+
+// Menu dimensions
+#define MENU_WIDTH_RATIO 4
+#define MIN_MENU_WIDTH 200
+#define HEADER_HEIGHT_RATIO 15
+#define MIN_HEADER_HEIGHT 40
+#define CLOSE_BUTTON_PADDING 10
+#define MIN_LOG_HEIGHT 100
+#define LOG_HEIGHT_RATIO 4
+#define OPTION_HEIGHT_RATIO 20
+#define MIN_OPTION_HEIGHT 30
+#define SLIDER_LABEL_WIDTH 50
+
+// Button dimensions
+#define BUTTON_WIDTH_RATIO 6
+#define MIN_BUTTON_WIDTH 130
+#define MAX_BUTTON_WIDTH 200
+#define BUTTON_HEIGHT_RATIO 24
+#define MIN_BUTTON_HEIGHT 25
+#define MAX_BUTTON_HEIGHT 40
+
+// Button position ratios
+#define BUTTON_X_RATIO 80
+#define BUTTON_Y_RATIO 60
+
+// Animation
+#define MENU_ANIMATION_STEP 0.15f
+
+// Frame delay
+#define FRAME_DELAY_MS 16
+
+// Other constants
+#define DIVIDE_BY_TWO 2
+#define SEPARATOR_HEIGHT 1
+#define HEADER_SEPARATOR_Y_OFFSET 5
+#define MENU_PADDING_X 10
+#define MENU_CONTENT_WIDTH_OFFSET 20
+#define HEADER_TEXT_PADDING 10
+#define TITLE_TEXT "SiFe"
+
+#endif
