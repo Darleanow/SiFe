@@ -15,7 +15,7 @@ SDL_Window *window = NULL;
 static UIState ui_state;
 
 #ifdef __APPLE__
-    float scale_factor = 1.0f;
+    static float scale_factor = 1.0f;
 #endif
 
 // Input handling constants and mappings
