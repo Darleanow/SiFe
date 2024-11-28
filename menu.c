@@ -49,8 +49,8 @@ static void draw_menu_content(mu_Context *ctx, UIState *state, int menu_width, i
     mu_draw_rect(ctx, r, mu_color(state->bg_color[0], state->bg_color[1], state->bg_color[2], 255));
 
     char color_text[32];
-    sprintf_s(color_text, sizeof(color_text), "#%02X%02X%02X",
-              (int)state->bg_color[0], (int)state->bg_color[1], (int)state->bg_color[2]);
+    snprintf(color_text, sizeof(color_text), "#%02X%02X%02X",
+             (int)state->bg_color[0], (int)state->bg_color[1], (int)state->bg_color[2]);
     mu_draw_control_text(ctx, color_text, r, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
 
     // Log section
