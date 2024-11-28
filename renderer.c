@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <assert.h>
+#include <stdio.h>
 #include "renderer.h"
 #include "atlas.inl"
 
@@ -17,29 +18,44 @@ static int buf_idx;
 
 extern SDL_Window* window;
 
-void r_init(void) {
-  SDL_GL_CreateContext(window);
+int r_init(void) {
+    // Create OpenGL context first
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if (!context) {
+        fprintf(stderr, "Failed to create OpenGL context: %s\n", SDL_GetError());
+        return -1;
+    }
 
-  /* init gl */
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
-  glEnable(GL_SCISSOR_TEST);
-  glEnable(GL_TEXTURE_2D);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glEnableClientState(GL_COLOR_ARRAY);
+    // Set OpenGL attributes before creating context
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  /* init texture */
-  GLuint id;
-  glGenTextures(1, &id);
-  glBindTexture(GL_TEXTURE_2D, id);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ATLAS_WIDTH, ATLAS_HEIGHT, 0,
-    GL_ALPHA, GL_UNSIGNED_BYTE, atlas_texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  assert(glGetError() == 0);
+    /* init gl */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_SCISSOR_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
+    /* init texture */
+    GLuint id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ATLAS_WIDTH, ATLAS_HEIGHT, 0,
+                 GL_ALPHA, GL_UNSIGNED_BYTE, atlas_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Check for errors after initialization
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        fprintf(stderr, "OpenGL error during initialization: %d\n", error);
+    }
 }
 
 void r_update_dimensions(int w, int h) {
@@ -74,7 +90,14 @@ static void flush(void) {
 }
 
 static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color) {
-  if (buf_idx == BUFFER_SIZE) { flush(); }
+
+    if (buf_idx >= BUFFER_SIZE) {
+        flush();
+        if (buf_idx >= BUFFER_SIZE) {
+            fprintf(stderr, "Buffer overflow in push_quad\n");
+            return;
+        }
+    }
 
   int texvert_idx = buf_idx *  8;
   int   color_idx = buf_idx * 16;

@@ -3,7 +3,7 @@
 
 #include "microui.h"
 
-void r_init(void);
+int r_init(void);
 void r_update_dimensions(int w, int h);
 void r_draw_rect(mu_Rect rect, mu_Color color);
 void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color);

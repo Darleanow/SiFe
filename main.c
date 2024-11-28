@@ -1,6 +1,9 @@
 #include <SDL2/SDL.h>
+
 #undef main
+
 #include <SDL_opengl.h>
+#include <stdio.h>
 #include "renderer.h"
 #include "microui.h"
 #include "constants.h"
@@ -63,7 +66,6 @@ static int text_height(mu_Font font) {
 }
 
 
-
 static void render_commands(mu_Context *ctx) {
     mu_Command *cmd = NULL;
     while (mu_next_command(ctx, &cmd)) {
@@ -97,8 +99,7 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                 case SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL_WINDOWEVENT_RESTORED:
-                case SDL_WINDOWEVENT_EXPOSED:
-                {
+                case SDL_WINDOWEVENT_EXPOSED: {
                     int width, height;
                     SDL_GetWindowSize(window, &width, &height);
                     if (width != state->window_width || height != state->window_height) {
@@ -152,7 +153,18 @@ static void cleanup(mu_Context *ctx) {
 
 
 int main(int argc, char **argv) {
-    SDL_Init(SDL_INIT_EVERYTHING);
+    // Set up SDL for macOS
+    #ifdef __APPLE__
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    #endif
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        fprintf(stderr, "SDL initialization failed: %s\n", SDL_GetError());
+        return 1;
+    }
 
     ui_state_init(&ui_state);
     logger_init();
@@ -161,12 +173,30 @@ int main(int argc, char **argv) {
             TITLE_TEXT,
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             ui_state.window_width, ui_state.window_height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
+            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
-    r_init();
+    if (!window) {
+        fprintf(stderr, "Window creation failed: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    if (r_init() != 0) {
+        fprintf(stderr, "Renderer initialization failed\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
     mu_Context *ctx = malloc(sizeof(mu_Context));
+    if (!ctx) {
+        fprintf(stderr, "Failed to allocate memory for mu_Context\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
     mu_init(ctx);
     ctx->text_width = text_width;
     ctx->text_height = text_height;
@@ -187,6 +217,9 @@ int main(int argc, char **argv) {
         SDL_Delay(FRAME_DELAY_MS);
     }
 
-    cleanup(ctx);
+    // Cleanup
+    free(ctx);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
 }
