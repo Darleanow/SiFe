@@ -1,4 +1,4 @@
-#include "ui_state.h"
+#include "UiState.h"
 #include "constants.h"
 
 void ui_state_init(UIState *state) {

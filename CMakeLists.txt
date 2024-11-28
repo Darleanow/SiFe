@@ -18,9 +18,9 @@ set(MICROUI_SOURCES
 
 set(PROJECT_SOURCES
         main.c
-        ui_state.c
-        menu.c
-        logger.c
+        UiState.c
+        Menu.c
+        Logger.c
         ${MICROUI_SOURCES}
 )
 
