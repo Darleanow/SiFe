@@ -34,7 +34,7 @@ void write_log(const char *text) {
     logbuf_updated = 1;
 }
 
-const char* get_log_buffer(void) {
+const char *get_log_buffer(void) {
     return logbuf;
 }
 

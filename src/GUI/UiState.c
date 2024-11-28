@@ -13,7 +13,7 @@ void ui_state_init(UIState *state) {
     state->bg_color[2] = 19;
 }
 
-void ui_state_update_dimensions(UIState *state, int width, int height) {
+void ui_state_update_dimensions(UIState *state, const int width, const int height) {
     state->window_width = width;
     state->window_height = height;
     calculate_responsive_dimensions(state);

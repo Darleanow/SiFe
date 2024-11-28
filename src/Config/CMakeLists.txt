@@ -3,9 +3,9 @@ add_library(Config
 )
 
 target_include_directories(Config PUBLIC
-        ${COMMON_INCLUDE_DIRS}  # Include SDL2 and other common directories
+        ${COMMON_INCLUDE_DIRS}
 )
 
 target_link_libraries(Config PUBLIC
-        ${COMMON_LIBRARIES}  # Link SDL2 library here
+        ${COMMON_LIBRARIES}
 )

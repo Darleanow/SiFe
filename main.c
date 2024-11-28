@@ -13,7 +13,6 @@
 
 SDL_Window *window = NULL;
 static UIState ui_state;
-static float scale_factor = 1.0f;
 
 // Input handling constants and mappings
 #define KEY_MAP_MASK 0xff
@@ -82,6 +81,8 @@ static void render_commands(mu_Context *ctx) {
             case MU_COMMAND_CLIP:
                 r_set_clip_rect(cmd->clip.rect);
                 break;
+            default:
+                break;
         }
     }
 }
@@ -121,6 +122,7 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
                         r_present();
                     }
                 }
+                default:
                     break;
             }
             break;
@@ -165,11 +167,14 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
 
         case SDL_KEYDOWN:
         case SDL_KEYUP: {
-            int c = key_map[e->key.keysym.sym & KEY_MAP_MASK];
+            const int c = key_map[e->key.keysym.sym & KEY_MAP_MASK];
             if (c && e->type == SDL_KEYDOWN) { mu_input_keydown(ctx, c); }
             if (c && e->type == SDL_KEYUP) { mu_input_keyup(ctx, c); }
             break;
         }
+
+        default:
+            break;
     }
 }
 
@@ -212,7 +217,7 @@ int main(int argc, char **argv) {
             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
-    if (!window) {
+    if (window == NULL) {
         fprintf(stderr, "Window creation failed: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
@@ -234,7 +239,7 @@ int main(int argc, char **argv) {
     }
 
     mu_Context *ctx = malloc(sizeof(mu_Context));
-    if (!ctx) {
+    if (ctx == NULL) {
         fprintf(stderr, "Failed to allocate memory for mu_Context\n");
         SDL_DestroyWindow(window);
         SDL_Quit();

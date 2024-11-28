@@ -8,5 +8,5 @@ target_include_directories(Components PUBLIC
 )
 
 target_link_libraries(Components PUBLIC
-        ${COMMON_LIBRARIES}  # Link SDL2 library here
+        ${COMMON_LIBRARIES}
 )

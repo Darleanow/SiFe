@@ -12,7 +12,9 @@ typedef struct {
 } UIState;
 
 void ui_state_init(UIState *state);
+
 void ui_state_update_dimensions(UIState *state, int width, int height);
+
 void calculate_responsive_dimensions(UIState *state);
 
 #endif
