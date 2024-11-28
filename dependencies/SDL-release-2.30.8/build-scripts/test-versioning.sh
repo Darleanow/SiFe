@@ -47,9 +47,9 @@ else
     not_ok "configure $version disagrees with SDL_version.h $ref_version"
 fi
 
-major=$(sed -ne 's/^set(SDL_MAJOR_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt)
-minor=$(sed -ne 's/^set(SDL_MINOR_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt)
-micro=$(sed -ne 's/^set(SDL_MICRO_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt)
+major=$(sed -ne 's/^set(SDL_MAJOR_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt.txt)
+minor=$(sed -ne 's/^set(SDL_MINOR_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt.txt)
+micro=$(sed -ne 's/^set(SDL_MICRO_VERSION \([0-9]*\))$/\1/p' CMakeLists.txt.txt)
 version="${major}.${minor}.${micro}"
 
 if [ "$ref_version" = "$version" ]; then

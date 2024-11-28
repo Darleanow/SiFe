@@ -165,7 +165,7 @@ class Releaser:
         dry_out = textwrap.dedent("""\
             time=2024-03-14T15:40:25-07:00
 
-            M\tCMakeLists.txt
+            M\tCMakeLists.txt.txt
         """)
         git_log_out = self.executer.run(["git", "log", "--name-status", '--pretty=time=%cI', self.commit], stdout=True, dry_out=dry_out).stdout.splitlines(keepends=False)
         current_time = None

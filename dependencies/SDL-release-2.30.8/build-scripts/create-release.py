@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def determine_project() -> str:
-    text = (ROOT / "CMakeLists.txt").read_text()
+    text = (ROOT / "CMakeLists.txt.txt").read_text()
     match = next(re.finditer(r"project\((?P<project>[a-zA-Z0-9_]+)\s+", text, flags=re.M))
     project_with_version = match["project"]
     project, _ = re.subn("([^a-zA-Z_])", "", project_with_version)
