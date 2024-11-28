@@ -68,16 +68,15 @@ static const char *TITLE_TEXT = "SiFe";
 void r_init(void);
 
 static void write_log(const char *text) {
+    // Vérification avant d'ajouter du texte pour éviter le dépassement de tampon
     if (logbuf[0]) {
-        if (strcat_s(logbuf, sizeof(logbuf), "\n") != 0) {
-            fprintf(stderr, "Failed to append newline to log\n");
+        if (strlen(logbuf) + strlen(text) >= sizeof(logbuf)) {
+            fprintf(stderr, "Failed to append text to log: buffer overflow\n");
             return;
         }
-    }
 
-    if (strcat_s(logbuf, sizeof(logbuf), text) != 0) {
-        fprintf(stderr, "Failed to append text to log\n");
-        return;
+        // Utiliser strcat correctement pour ajouter text à logbuf
+        strcat(logbuf, text);  // Ajoute text à logbuf
     }
 
     logbuf_updated = 1;
@@ -106,7 +105,7 @@ static void menu_window(mu_Context *ctx) {
 
     int header_height = window_height / HEADER_HEIGHT_RATIO;
     if (header_height < MIN_HEADER_HEIGHT) header_height = MIN_HEADER_HEIGHT;
-    int close_button_size = header_height - CLOSE_BUTTON_PADDING;
+    const int close_button_size = header_height - CLOSE_BUTTON_PADDING;
 
     // Calculate log window height
     int log_height = window_height / LOG_HEIGHT_RATIO;
@@ -204,7 +203,7 @@ static void menu_window(mu_Context *ctx) {
         mu_draw_rect(ctx, r, mu_color(bg_color[0], bg_color[1], bg_color[2], 255));
 
         char color_text[32];
-        sprintf_s(color_text, sizeof(color_text), "#%02X%02X%02X", (int)bg_color[0], (int)bg_color[1], (int)bg_color[2]);
+        sprintf(color_text, "#%02X%02X%02X", (int)bg_color[0], (int)bg_color[1], (int)bg_color[2]);
         mu_draw_control_text(ctx, color_text, r, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
 
         // Log window section
