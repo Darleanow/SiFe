@@ -60,9 +60,18 @@ int r_init(void) {
 }
 
 void r_update_dimensions(int w, int h) {
-  width = w;
-  height = h;
-  glViewport(0, 0, width, height);
+    #ifdef __APPLE__
+        // Get the actual pixel dimensions for Retina displays
+        int drawable_width, drawable_height;
+        SDL_GL_GetDrawableSize(window, &drawable_width, &drawable_height);
+        width = drawable_width;
+        height = drawable_height;
+        glViewport(0, 0, drawable_width, drawable_height);
+    #else
+        width = w;
+        height = h;
+        glViewport(0, 0, w, h);
+    #endif
 }
 
 static void flush(void) {

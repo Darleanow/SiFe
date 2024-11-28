@@ -91,7 +91,6 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
         case SDL_QUIT:
             *running = 0;
             break;
-
         case SDL_WINDOWEVENT:
             switch (e->window.event) {
                 case SDL_WINDOWEVENT_MOVED:
@@ -101,7 +100,11 @@ static void handle_event(SDL_Event *e, mu_Context *ctx, int *running, UIState *s
                 case SDL_WINDOWEVENT_RESTORED:
                 case SDL_WINDOWEVENT_EXPOSED: {
                     int width, height;
-                    SDL_GetWindowSize(window, &width, &height);
+                    #ifdef __APPLE__
+                        SDL_GL_GetDrawableSize(window, &width, &height);
+                    #else
+                        SDL_GetWindowSize(window, &width, &height);
+                    #endif
                     if (width != state->window_width || height != state->window_height) {
                         ui_state_update_dimensions(state, width, height);
                         r_update_dimensions(width, height);
@@ -153,12 +156,21 @@ static void cleanup(mu_Context *ctx) {
 
 
 int main(int argc, char **argv) {
-    // Set up SDL for macOS
     #ifdef __APPLE__
+        // Set up SDL for macOS
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+        // Add these lines for Retina display support
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     #endif
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
