@@ -1,5 +1,5 @@
 #include "UiState.h"
-#include "constants.h"
+#include "src/Constants.h"
 
 void ui_state_init(UIState *state) {
     state->window_width = DEFAULT_WINDOW_WIDTH;

@@ -65,7 +65,7 @@ jobs:
         echo "SDL2_DIR=$Env:GITHUB_WORKSPACE/prefix" >> $Env:GITHUB_ENV
         cmake --install build/
     - name: Verify CMake configuration files
-      if: ${{ !contains(matrix.platform.name, 'UWP') }}  # FIXME: cmake/test/CMakeLists.txt should support UWP
+      if: ${{ !contains(matrix.platform.name, 'UWP') }}  # FIXME: cmake/test/CMakeLists.txt.txt should support UWP
       run: |
         cmake -S cmake/test -B cmake_config_build `
           -DCMAKE_PREFIX_PATH=${{ env.SDL2_DIR }} `

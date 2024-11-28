@@ -3,15 +3,12 @@
 #include <string.h>
 
 #ifdef __APPLE__
-#include <string.h>
-    #define STRCAT_SAFE(dest, destsz, src) strlcat(dest, src, destsz)
+#define STRCAT_SAFE(dest, destsz, src) strlcat(dest, src, destsz)
 #else
 #define STRCAT_SAFE(dest, destsz, src) strcat_s(dest, destsz, src)
 #endif
 
 #define LOG_BUFFER_SIZE 64000
-
-
 
 static char logbuf[LOG_BUFFER_SIZE];
 static int logbuf_updated = 0;

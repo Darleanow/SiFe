@@ -4,12 +4,12 @@
 
 #include <SDL_opengl.h>
 #include <stdio.h>
-#include "Renderer.h"
+#include "src/Config/Renderer.h"
 #include "microui.h"
-#include "Constants.h"
-#include "Logger.h"
-#include "UiState.h"
-#include "Menu.h"
+#include "src/Constants.h"
+#include "src/Systems/Logger.h"
+#include "src/GUI/UiState.h"
+#include "src/GUI/Components/Menu.h"
 
 SDL_Window *window = NULL;
 static UIState ui_state;
