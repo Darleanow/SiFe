@@ -1,0 +1,1 @@
+![Architecture](Resources/schema.png)
